@@ -1,0 +1,11 @@
+# Arquivos R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Dados grandes (evite subir para o GitHub)
+data/raw/
+
+# Resultados (gerados pelos scripts)
+results/
+
