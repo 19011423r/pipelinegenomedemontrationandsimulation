@@ -33,4 +33,40 @@ net <- blockwiseModules(
   minModuleSize = 30,
   reassignThreshold = 0,
   mergeCutHeight = 0.25,
+
+Para habilitar threads
+
+enableWGCNAThreads()  # habilita o paralelismo
+
+datExpr <- t(exprs_data)  # linhas = amostras, colunas = genes
+
+# Verifica genes e amostras problemáticos
+gsg <- goodSamplesGenes(datExpr, verbose = 3)
+if (!gsg$allOK) {
+  datExpr <- datExpr[gsg$goodSamples, gsg$goodGenes]
+}
+
+# Escolha da potência
+sft <- pickSoftThreshold(datExpr, networkType = "unsigned", verbose = 5)
+power_beta <- sft$powerEstimate
+
+# Constrói rede e detecta módulos
+net <- blockwiseModules(
+  datExpr,
+  power = power_beta,
+  TOMType = "unsigned",
+  minModuleSize = 30,
+  reassignThreshold = 0,
+  mergeCutHeight = 0.25,
+  numericLabels = TRUE,
+  verbose = 3
+)
+
+# Salva módulos
+dir.create("results", showWarnings = FALSE)
+module_colors <- net$colors
+write.csv(module_colors, "results/modulos_wgcna.csv")
+
+cat("WGCNA concluído! Resultados salvos em 'results/modulos_wgcna.csv'\n")
+
   numericLabels = TRUE
