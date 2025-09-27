@@ -70,27 +70,38 @@ cat("Análise concluída! Resultados salvos em 'results/tabela_genes_diferenciai
 
 Passo 4: Análise de Coexpressão com WGCNA
 
-Nesta fase, módulos (grupos) de genes que trabalham em conjunto são identificados.
-R
+library(WGCNA)
 
-# Transponha a matriz de dados de expressão para o WGCNA
-datExpr <- as.data.frame(t(exprs_data))
+# Se quiser, use só subconjunto de dados para teste rápido
+# datExpr <- exprs_data[, 1:20]  # opcional
+datExpr <- t(exprs_data)  # WGCNA espera linhas = amostras, colunas = genes
 
-# Escolha o soft-thresholding power
-sft <- pickSoftThreshold(datExpr, networkType = "unsigned")
+# Verifica se há valores ausentes
+gsg <- goodSamplesGenes(datExpr, verbose = 3)
+if (!gsg$allOK) {
+  # Remove genes/amostras ruins se houver
+  datExpr <- datExpr[gsg$goodSamples, gsg$goodGenes]
+}
 
-# Construa a rede e identifique os módulos
-net <- blockwiseModules(datExpr,
-                        power = sft$powerEstimate,
-                        networkType = "unsigned",
-                        minModuleSize = 30,
-                        maxBlockSize = 20000,
-                        mergeCutHeight = 0.25,
-                        verbose = 3)
+# Escolha da potência (soft threshold)
+power_sft <- pickSoftThreshold(datExpr, networkType = "unsigned")
 
-# Salve os resultados dos módulos
+# Constrói a rede e detecta módulos (exemplo simplificado)
+net <- blockwiseModules(
+  datExpr,
+  power = power_sft$powerEstimate,
+  TOMType = "unsigned",
+  minModuleSize = 30,
+  reassignThreshold = 0,
+  mergeCutHeight = 0.25,
+  numericLabels = TRUE,
+  verbose = 3
+)
+
+# Extrai os módulos e salva
 module_colors <- net$colors
-table(module_colors)
+dir.create("results", showWarnings = FALSE)
+write.csv(module_colors, "results/modulos_wgcna.csv")
 
-# Salve os dados de WGCNA
-save(net, file = "results/wgcna_cancer_results.RData")
+cat("WGCNA concluído! Resultados salvos em 'results/modulos_wgcna.csv'\n")
+
