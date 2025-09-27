@@ -1,1 +1,38 @@
+Após extrair os resultados, em seu terminal R, rode:
+
+# Carrega pacotes necessários
+library(ggplot2)
+
+# Lê o CSV (ou use o objeto top_genes direto)
+# top_genes <- read.csv("results/tabela_genes_diferenciais.csv", row.names = 1)
+
+# Define thresholds para destaque
+logFC_threshold <- 1      # log2 fold change mínimo
+pval_threshold <- 0.05    # valor de p ajustado
+
+# Adiciona uma coluna para cores
+top_genes$color <- "gray"  # padrão
+top_genes$color[top_genes$logFC > logFC_threshold & top_genes$adj.P.Val < pval_threshold] <- "red"
+top_genes$color[top_genes$logFC < -logFC_threshold & top_genes$adj.P.Val < pval_threshold] <- "blue"
+
+# Cria o gráfico Volcano
+volcano_plot <- ggplot(top_genes, aes(x = logFC, y = -log10(adj.P.Val), color = color)) +
+  geom_point(alpha = 0.6, size = 1.5) +
+  scale_color_identity() +
+  theme_minimal() +
+  xlab("log2 Fold Change") +
+  ylab("-log10 Ajustado P-valor") +
+  ggtitle("Volcano Plot") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Salva o gráfico
+ggsave("results/volcano_plot.png", volcano_plot, width = 6, height = 5)
+
+# Mostra o gráfico
+print(volcano_plot)
+
+Resultado
+
+
+
 
