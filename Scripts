@@ -24,25 +24,49 @@ Passo 3: Análise de Expressão Diferencial com limma
 Esta etapa identifica os genes que se expressam de forma significativamente diferente entre os grupos de amostras (tumor vs. controle).
 R
 
-# Extraia os dados de expressão e as informações das amostras
-exprs_data <- exprs(eset_subset)
-pheno_data <- pData(eset_subset)
+# Carrega os pacotes necessários
+library(GEOquery)
+library(limma)
 
-# Identifique os grupos
-groups <- factor(pheno_data$characteristics_ch1.2) # O nome da coluna pode variar
+# Cria pasta para salvar resultados
+dir.create("results", showWarnings = FALSE)
 
-# Crie a matriz de design
-design <- model.matrix(~0 + groups)
+# Baixa o dataset do GEO
+gse <- getGEO("GSE2034", GSEMatrix = TRUE, AnnotGPL = TRUE)
+eset <- gse[[1]]  # Extrai o conjunto de dados
 
-# Execute a análise limma
+# Converte ExpressionSet para matriz numérica (necessário para limma)
+exprs_data <- exprs(eset)
+
+# Se quiser testar sem travar a máquina, pegue um subconjunto
+# exprs_data <- exprs_data[, 1:10]  # opcional para teste rápido
+
+# Define os grupos
+# Ajuste o número de amostras para bater com o número de colunas do seu dataset
+# Exemplo: se forem 22 amostras
+n_samples <- ncol(exprs_data)
+# Vamos dividir em dois grupos iguais ou quase iguais
+n_groupA <- floor(n_samples/2)
+n_groupB <- n_samples - n_groupA
+group_factor <- factor(c(rep("grupoA", n_groupA), rep("grupoB", n_groupB)))
+
+# Cria a matriz de design
+design <- model.matrix(~0 + group_factor)
+colnames(design) <- levels(group_factor)
+
+# Ajusta o modelo linear e calcula os contrastes
 fit <- lmFit(exprs_data, design)
-contrast.matrix <- makeContrasts(tumor-normal, levels=design)
+contrast.matrix <- makeContrasts(grupoA - grupoB, levels=design)
 fit2 <- contrasts.fit(fit, contrast.matrix)
 fit2 <- eBayes(fit2)
 
-# Obtenha e salve os resultados
-results_limma <- topTable(fit2, number = Inf, adjust.method = "BH")
-write.csv(results_limma, "results/tabela_limma_cancer.csv")
+# Extrai os resultados e salva
+top_genes <- topTable(fit2, adjust.method="BH", n=Inf)
+write.csv(top_genes, "results/tabela_genes_diferenciais.csv")
+
+# Mensagem de confirmação
+cat("Análise concluída! Resultados salvos em 'results/tabela_genes_diferenciais.csv'\n")
+
 
 Passo 4: Análise de Coexpressão com WGCNA
 
