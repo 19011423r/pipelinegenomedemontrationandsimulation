@@ -1,1 +1,36 @@
+para a análise dos dados: 
+# ----------------------------------------------------------------------
+# Script WGCNA Ajustado - Usando CSV do limma
+# ----------------------------------------------------------------------
 
+# 1. Carregamento dos pacotes
+library(WGCNA)
+enableWGCNAThreads()  # permite uso de múltiplos threads
+
+# 2. Carrega os dados do limma (ou ExpressionSet se tiver)
+top_genes <- read.csv("results/tabela_genes_diferenciais.csv", row.names = 1)
+
+# Para WGCNA, precisamos de matriz genes x amostras
+# Transpõe para que linhas = amostras, colunas = genes
+datExpr <- t(top_genes[, grep("logFC|exprs", colnames(top_genes), invert = TRUE)]) # pega só valores numéricos
+
+# 3. Verifica genes/amostras ruins
+gsg <- goodSamplesGenes(datExpr, verbose = 3)
+if (!gsg$allOK) {
+  datExpr <- datExpr[gsg$goodSamples, gsg$goodGenes]
+}
+
+# 4. Escolha do soft-thresholding power
+sft <- pickSoftThreshold(datExpr, networkType = "unsigned", verbose = 5)
+power_beta <- sft$powerEstimate
+cat("Potência escolhida:", power_beta, "\n")
+
+# 5. Construção da rede e detecção de módulos
+net <- blockwiseModules(
+  datExpr,
+  power = power_beta,
+  TOMType = "unsigned",
+  minModuleSize = 30,
+  reassignThreshold = 0,
+  mergeCutHeight = 0.25,
+  numericLabels = TRUE
