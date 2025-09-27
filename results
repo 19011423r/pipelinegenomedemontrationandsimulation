@@ -1,1 +1,17 @@
+Após rodar os scripts, rode os seguintes comandos dentro do R para extrair os resultados:
+
+1 No RStudio, digite:
+getwd()
+
+Isso vai mostrar a pasta atual do R, que é onde a results foi criada.
+
+2 O caminho completo do CSV vai ser algo como:
+/caminho/para/seu/diretorio/results/tabela_genes_diferenciais.csv
+ou, no caso do WGCNA:
+/caminho/para/seu/diretorio/results/modulos_wgcna.csv
+
+3 Se quiser abrir direto do R, você pode usar:
+file.show("results/tabela_genes_diferenciais.csv")
+file.show("results/modulos_wgcna.csv")
+
 
