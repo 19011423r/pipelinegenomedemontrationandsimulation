@@ -33,6 +33,27 @@ print(volcano_plot)
 
 Resultado
 
+para gerar Heatmap
+
+
+library(WGCNA)
+library(pheatmap)  # pacote para heatmaps mais bonitos
+
+# Exemplo: heatmap dos módulos (amostras x genes)
+# Vamos organizar os genes pelo módulo
+module_order <- order(module_colors)
+datExpr_ordered <- datExpr[, module_order]
+
+# Heatmap
+pheatmap(
+  datExpr_ordered,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  show_rownames = FALSE,
+  show_colnames = FALSE,
+  color = colorRampPalette(c("blue","white","red"))(50),
+  main = "Heatmap de Coexpressão Gênica"
+)
 
 
 
